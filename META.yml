@@ -19,11 +19,12 @@ no_index:
     - inc
     - t
 requires:
-  HTML::WikiConverter: 0
-  HTML::WikiConverter::Markdown: 0
-  WWW::Mechanize: 0
-  pQuery: 0
+  Any::Moose: 0.07
+  HTML::WikiConverter: 0.68
+  HTML::WikiConverter::Markdown: 0.05
+  WWW::Mechanize: 1.52
+  pQuery: 0.07
 resources:
   license: http://opensource.org/licenses/mit-license.php
   repository: http://github.com/gugod/net-redmine
-version: 0.01
+version: 0.02

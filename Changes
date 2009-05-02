@@ -1,2 +1,8 @@
-0.01:
-  - Implement Ticket creating and loading.
+-*- org -*-
+
+0.02
+* Implement a top-level Net::Redmine API
+* Implement ticket identity mapping using Net::Redmine APIs
+
+0.01
+* Implement Ticket creating and loading.

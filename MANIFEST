@@ -19,6 +19,7 @@ MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/redmine.t
 t/tickets.t
 xt/01_podspell.t
 xt/02_perlcritic.t

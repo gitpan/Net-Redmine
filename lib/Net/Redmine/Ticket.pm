@@ -7,7 +7,7 @@ has connection => (
     required => 1
 );
 
-has id          => (is => "rw", isa => "Num");
+has id          => (is => "rw", isa => "Int");
 has subject     => (is => "rw", isa => "Str");
 has description => (is => "rw", isa => "Str");
 has status      => (is => "rw", isa => "Str");
@@ -35,7 +35,7 @@ sub create {
         die "Failed to create a new ticket\n";
     }
 
-    if ($mech->uri =~ m[/issues/show/(\d+)$]) {
+    if ($mech->uri =~ m[/issues(?:/show)?/(\d+)$]) {
         my $id = $1;
         $self->id($id);
         return $id;
