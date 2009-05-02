@@ -27,4 +27,4 @@ requires:
 resources:
   license: http://opensource.org/licenses/mit-license.php
   repository: http://github.com/gugod/net-redmine
-version: 0.02
+version: 0.03

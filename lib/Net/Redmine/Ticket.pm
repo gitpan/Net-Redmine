@@ -13,6 +13,9 @@ has description => (is => "rw", isa => "Str");
 has status      => (is => "rw", isa => "Str");
 has priority    => (is => "rw", isa => "Str");
 
+has note        => (is => "rw", isa => "Str");
+has histories   => (is => "rw", isa => "ArrayRef", lazy_build => 1);
+
 sub create {
     my ($self, %attr) = @_;
 
@@ -74,13 +77,60 @@ sub load {
 
     my $subject = $p->find(".issue h3")->text;
 
+    my $status = $p->find(".issue .status")->eq(1)->text;
+
     $self->id($id);
     $self->subject($subject);
     $self->description($description);
+    $self->status($status);
 
     return $self;
 }
 
+sub save {
+    my ($self) = @_;
+    die "Cannot save a ticket without id.\n" unless $self->id;
+
+    my $mech = $self->connection->get_issues($self->id)->mechanize;
+    $mech->follow_link( url_regex => qr[/issues/\d+/edit$] );
+
+    $mech->form_id("issue-form");
+    $mech->set_fields(
+        'issue[status_id]' => $self->status,
+        'issue[description]' => $self->description,
+        'issue[subject]' => $self->subject
+    );
+
+    if ($self->note) {
+        $mech->set_fields(notes => $self->note);
+    }
+
+    $mech->submit;
+    die "Ticket save failed (ticket id = @{[ $self->id ]})\n"
+        unless $mech->response->is_success;
+
+    return $self;
+}
+
+sub _build_histories {
+    my ($self) = @_;
+    die "Cannot lookup ticket histories without id.\n" unless $self->id;
+    my $mech = $self->connection->get_issues($self->id)->mechanize;
+
+    my $p = pQuery($mech->content);
+
+    my $n = $p->find(".journal")->size;
+
+    return [
+        map {
+            Net::Redmine::TicketHistory->new(
+                connection => $self->connection,
+                id => $_,
+                ticket_id => $self->id
+            )
+        } (1..$n)
+    ];
+}
 
 __PACKAGE__->meta->make_immutable;
 no Any::Moose;

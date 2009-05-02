@@ -13,13 +13,18 @@ inc/Test/More.pm
 lib/Net/Redmine.pm
 lib/Net/Redmine/Connection.pm
 lib/Net/Redmine/Ticket.pm
+lib/Net/Redmine/TicketHistory.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/net_redmine_test.pl
 t/redmine.t
+t/ticket-history.t
+t/ticket-resolution.t
+t/ticket-status.t
 t/tickets.t
 xt/01_podspell.t
 xt/02_perlcritic.t
