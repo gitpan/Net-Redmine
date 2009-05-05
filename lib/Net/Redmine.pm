@@ -1,6 +1,6 @@
 package Net::Redmine;
 use Any::Moose;
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 use Net::Redmine::Connection;
 use Net::Redmine::Ticket;
 
@@ -29,6 +29,11 @@ sub BUILDARGS {
     return $class->SUPER::BUILDARGS(%args);
 }
 
+sub BUILD {
+    my $self = shift;
+    $self->connection->directory($self);
+}
+
 sub create {
     my ($self, %args) = @_;
     return $self->create_ticket(%$_) if $_ = $args{ticket};
@@ -41,26 +46,26 @@ sub lookup {
 
 sub create_ticket {
     my ($self, %args) = @_;
-    my $t = Net::Redmine::Ticket->new(connection => $self->connection);
-    $t->create(%args);
+    my $t = Net::Redmine::Ticket->create(
+        connection => $self->connection,
+        %args
+    );
 
     return $self->lookup_ticket(id => $t->id);
 }
 
 sub lookup_ticket {
     my ($self, %args) = @_;
-    my $id = $args{id};
 
-    my $live = $self->_live_ticket_objects;
-    if (exists $live->{$id}) {
-        return $live->{$id};
+    if (my $id = $args{id}) {
+        my $live = $self->_live_ticket_objects;
+        return $live->{$id} if exists $live->{$id};
+
+        if (my $t =  Net::Redmine::Ticket->load(connection => $self->connection, id => $id)) {
+            $live->{$id} = $t;
+            return $t;
+        }
     }
-
-    my $t =  Net::Redmine::Ticket->new(connection => $self->connection);
-    $t->load($id);
-
-    $live->{$id} = $t;
-    return $t;
 }
 
 1;

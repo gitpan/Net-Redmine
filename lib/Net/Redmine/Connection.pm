@@ -4,6 +4,7 @@ use Any::Moose;
 has url      => ( is => "rw", isa => "Str", required => 1 );
 has user     => ( is => "rw", isa => "Str", required => 1 );
 has password => ( is => "rw", isa => "Str", required => 1 );
+has directory => (is => "rw", isa => "Net::Redmine");
 
 has mechanize => (
     is => "rw",
@@ -42,7 +43,7 @@ sub get_project_overview {
     return $self;
 }
 
-sub get_issues {
+sub get_issues_page {
     my ($self, $id) = @_;
     $self->get_project_overview;
     my $mech = $self->mechanize;
@@ -50,11 +51,23 @@ sub get_issues {
     if ($id) {
         $mech->submit_form(form_number => 1, fields => { q => "#" . $id });
         die "Failed to get the ticket(id = $id)\n" unless $mech->response->is_success;
+        die "No such ticket\n" unless $mech->uri =~ m[/issues/${id}$];
     }
     else {
         $mech->follow_link( url_regex => qr[/issues$] );
         die "Failed to get the ticket overview page\n" unless $mech->response->is_success;
     }
+
+    return $self;
+}
+
+sub get_new_issue_page {
+    my ($self) = @_;
+
+    my $mech = $self->get_project_overview->mechanize;
+    $mech->follow_link( url_regex => qr[/issues/new$] );
+
+    die "Failed to get the 'New Issue' page\n" unless $mech->response->is_success;
 
     return $self;
 }

@@ -9,9 +9,11 @@ inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
+inc/Quantum/Superpositions.pm
 inc/Test/More.pm
 lib/Net/Redmine.pm
 lib/Net/Redmine/Connection.pm
+lib/Net/Redmine/Search.pm
 lib/Net/Redmine/Ticket.pm
 lib/Net/Redmine/TicketHistory.pm
 LICENSE
@@ -22,8 +24,11 @@ README
 t/00_compile.t
 t/net_redmine_test.pl
 t/redmine.t
+t/ticket-delete.t
 t/ticket-history.t
+t/ticket-refresh.t
 t/ticket-resolution.t
+t/ticket-search.t
 t/ticket-status.t
 t/tickets.t
 xt/01_podspell.t
