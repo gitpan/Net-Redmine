@@ -5,11 +5,13 @@ author:
 build_requires:
   ExtUtils::MakeMaker: 6.42
   Quantum::Superpositions: 1.03
+  Test::Memory::Cycle: 1.04
   Test::More: 0.86
+  Text::Greeking: 0.11
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.83'
+generated_by: 'Module::Install version 0.86'
 license: mit
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,6 +21,7 @@ no_index:
   directory:
     - inc
     - t
+    - xt
 requires:
   Any::Moose: 0.07
   Encode: 2.31
@@ -30,4 +33,4 @@ requires:
 resources:
   license: http://opensource.org/licenses/mit-license.php
   repository: http://github.com/gugod/net-redmine
-version: 0.04
+version: 0.05

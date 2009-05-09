@@ -4,7 +4,8 @@ use Any::Moose;
 has connection => (
     is => "rw",
     isa => "Net::Redmine::Connection",
-    required => 1
+    required => 1,
+    weak_ref => 1,
 );
 
 has id          => (is => "rw", isa => "Int");
@@ -48,8 +49,15 @@ sub load {
     die "should specify ticket id when loading it." unless defined $attr{id};
     die "should specify connection object when loading tickets." unless defined $attr{connection};
 
+    my $live = $attr{connection}->_live_ticket_objects;
+    my $id = $attr{id};
+    return $live->{$id} if exists $live->{$id};
+
     my $self = $class->new(%attr);
-    return $self->refresh;
+    $self->refresh or return;
+
+    $live->{$self->id} = $self;
+    return $self;
 }
 
 sub refresh {
@@ -122,6 +130,10 @@ sub destroy {
     die "Failed to delete the ticket\n" unless $mech->response->is_success;
 
     $self->id(-1);
+
+    my $live = $self->connection->_live_ticket_objects;
+    delete $live->{$id};
+
     return $self;
 }
 

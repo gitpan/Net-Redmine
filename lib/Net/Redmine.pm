@@ -1,6 +1,6 @@
 package Net::Redmine;
 use Any::Moose;
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 use Net::Redmine::Connection;
 use Net::Redmine::Ticket;
 
@@ -8,12 +8,6 @@ has connection => (
     is => "ro",
     isa => "Net::Redmine::Connection",
     required => 1
-);
-
-has _live_ticket_objects => (
-    is => "rw",
-    isa => "HashRef",
-    default => sub { {} }
 );
 
 sub BUILDARGS {
@@ -27,11 +21,6 @@ sub BUILDARGS {
     );
 
     return $class->SUPER::BUILDARGS(%args);
-}
-
-sub BUILD {
-    my $self = shift;
-    $self->connection->directory($self);
 }
 
 sub create {
@@ -58,13 +47,7 @@ sub lookup_ticket {
     my ($self, %args) = @_;
 
     if (my $id = $args{id}) {
-        my $live = $self->_live_ticket_objects;
-        return $live->{$id} if exists $live->{$id};
-
-        if (my $t =  Net::Redmine::Ticket->load(connection => $self->connection, id => $id)) {
-            $live->{$id} = $t;
-            return $t;
-        }
+        return Net::Redmine::Ticket->load(connection => $self->connection, id => $id);
     }
 }
 
