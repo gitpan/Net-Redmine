@@ -5,6 +5,7 @@ author:
 build_requires:
   ExtUtils::MakeMaker: 6.42
   Quantum::Superpositions: 1.03
+  Test::Cukes: 0.02
   Test::Memory::Cycle: 1.04
   Test::More: 0.86
   Text::Greeking: 0.11
@@ -28,9 +29,11 @@ requires:
   HTML::WikiConverter: 0.68
   HTML::WikiConverter::Markdown: 0.05
   IO::All: 0.39
+  IO::String: 1.08
+  Text::CSV::Slurp: 0.5
   WWW::Mechanize: 1.52
   pQuery: 0.07
 resources:
   license: http://opensource.org/licenses/mit-license.php
   repository: http://github.com/gugod/net-redmine
-version: 0.05
+version: 0.06

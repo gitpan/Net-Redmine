@@ -10,6 +10,7 @@ inc/Module/Install/Metadata.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/Quantum/Superpositions.pm
+inc/Test/Cukes.pm
 inc/Test/Memory/Cycle.pm
 inc/Test/More.pm
 inc/Text/Greeking.pm
@@ -31,6 +32,7 @@ t/ticket-delete.t
 t/ticket-history.t
 t/ticket-refresh.t
 t/ticket-resolution.t
+t/ticket-search-all.t
 t/ticket-search.t
 t/ticket-status.t
 t/tickets.t
