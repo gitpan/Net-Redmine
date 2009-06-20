@@ -25,10 +25,12 @@ MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/connection.t
 t/memory_cycle.t
 t/net_redmine_test.pl
 t/redmine.t
 t/ticket-delete.t
+t/ticket-history-date.t
 t/ticket-history.t
 t/ticket-refresh.t
 t/ticket-resolution.t

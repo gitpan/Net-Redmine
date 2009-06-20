@@ -1,5 +1,8 @@
 package Net::Redmine::Ticket;
 use Any::Moose;
+use Net::Redmine::TicketHistory;
+
+use DateTimeX::Easy;
 
 has connection => (
     is => "rw",
@@ -13,7 +16,8 @@ has subject     => (is => "rw", isa => "Str");
 has description => (is => "rw", isa => "Str");
 has status      => (is => "rw", isa => "Str");
 has priority    => (is => "rw", isa => "Str");
-
+has author      => (is => "rw", isa => "Str");
+has created_at  => (is => "rw", isa => "DateTime");
 has note        => (is => "rw", isa => "Str");
 has histories   => (is => "rw", isa => "ArrayRef", lazy_build => 1);
 
@@ -66,7 +70,7 @@ sub refresh {
 
     my $id = $self->id;
     eval '$self->connection->get_issues_page($id)';
-    return if $@;
+    if ($@) { warn $@; return }
 
     my $p = pQuery($self->connection->mechanize->content);
     my $wc = new HTML::WikiConverter( dialect => 'Markdown' );
@@ -77,6 +81,9 @@ sub refresh {
     $self->subject($subject);
     $self->description($description);
     $self->status($status);
+
+    $self->author($p->find(".issue .author a")->eq(0)->text);
+    $self->created_at(DateTimeX::Easy->new( $p->find(".issue .author a")->get(1)->getAttribute("title") ));
 
     return $self;
 }
@@ -153,7 +160,7 @@ sub _build_histories {
                 id => $_,
                 ticket_id => $self->id
             )
-        } (1..$n)
+        } (0..$n)
     ];
 }
 

@@ -1,5 +1,6 @@
 package Net::Redmine::Connection;
 use Any::Moose;
+use URI;
 
 has url      => ( is => "rw", isa => "Str", required => 1 );
 has user     => ( is => "rw", isa => "Str", required => 1 );
@@ -25,26 +26,34 @@ sub _build_mechanize {
     return $mech;
 }
 
+sub get_login_page {
+    my $self= shift;
+
+    my $uri = URI->new($self->url);
+    $uri->path("/login");
+
+    $self->mechanize->get( $uri->as_string );
+
+    return $self;
+}
+
+sub assert_login {
+    my $self = shift;
+    my $mech = $self->get_login_page->mechanize;
+    $mech->submit_form(
+        form_number => 2,
+        fields => {
+            username => $self->user,
+            password => $self->password
+        }
+    );
+}
+
 sub get_project_overview {
     my ($self) = @_;
-    my $mech = $self->mechanize;
+    $self->assert_login;
 
-    $mech->get( $self->url );
-
-    if ($mech->uri =~ /\/login/) {
-        $mech->submit_form(
-            form_number => 2,
-            fields => {
-                username => $self->user,
-                password => $self->password
-            }
-        );
-
-        if ($mech->uri ne $self->url) {
-            $mech->get($self->url);
-        }
-    }
-
+    $self->mechanize->get( $self->url );
     return $self;
 }
 
@@ -56,7 +65,7 @@ sub get_issues_page {
     if ($id) {
         $mech->submit_form(form_number => 1, fields => { q => "#" . $id });
         die "Failed to get the ticket(id = $id)\n" unless $mech->response->is_success;
-        die "No such ticket\n" unless $mech->uri =~ m[/issues/${id}$];
+        die "No such ticket id = $id\n" unless $mech->uri =~ m[/issues/(?:show/)?${id}$];
     }
     else {
         $mech->follow_link( url_regex => qr[/issues$] );
