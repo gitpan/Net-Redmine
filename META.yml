@@ -4,15 +4,10 @@ author:
   - 'Kang-min Liu <gugod@gugod.org>'
 build_requires:
   ExtUtils::MakeMaker: 6.42
-  Quantum::Superpositions: 1.03
-  Test::Cukes: 0.06
-  Test::Memory::Cycle: 1.04
-  Test::More: 0.86
-  Text::Greeking: 0.11
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
-generated_by: 'Module::Install version 0.86'
+generated_by: 'Module::Install version 1.01'
 license: mit
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -33,6 +28,8 @@ requires:
   IO::All: 0.39
   IO::String: 1.08
   Params::Validate: 0.91
+  Regexp::Common: 2.122
+  Regexp::Common::Email::Address: 1.01
   Text::CSV::Slurp: 0.5
   URI: 1.38
   URI::Escape: 3.29
@@ -41,4 +38,4 @@ requires:
 resources:
   license: http://opensource.org/licenses/mit-license.php
   repository: http://github.com/gugod/net-redmine
-version: 0.08
+version: 0.09

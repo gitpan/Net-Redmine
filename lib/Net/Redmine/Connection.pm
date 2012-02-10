@@ -7,6 +7,8 @@ has url      => ( is => "rw", isa => "Str", required => 1 );
 has user     => ( is => "rw", isa => "Str", required => 1 );
 has password => ( is => "rw", isa => "Str", required => 1 );
 
+has is_logined => ( is => "rw", isa => "Int");
+
 has _live_ticket_objects => (
     is => "rw",
     isa => "HashRef",
@@ -40,14 +42,35 @@ sub get_login_page {
 
 sub assert_login {
     my $self = shift;
+    return if $self->is_logined;
+
     my $mech = $self->get_login_page->mechanize;
-    $mech->submit_form(
-        form_number => 2,
+
+    my $form_n = 0;
+    my @forms = $mech->forms;
+    for (@forms) {
+        if ($_->method eq 'POST' && $_->action eq $mech->uri) {
+            last;
+        }
+        $form_n++;
+    }
+
+    if ($form_n >= @forms) {
+        die "There is no login form on the login page. (@{[ $mech->uri ]})";
+    }
+
+    my $res = $mech->submit_form(
+        form_number => $form_n,
         fields => {
             username => $self->user,
             password => $self->password
         }
     );
+
+    if ( $res->content =~ /<div class="flash error">/ ) {
+        die "Can't login, invalid login or password !";
+    }
+    $self->is_logined(1);
 }
 
 sub get_project_overview {
@@ -95,8 +118,18 @@ sub get_user_page {
     my $mech = $self->mechanize;
 
     my $uri = URI->new($mech->uri);
-    $uri->path("/account/show/$args{id}");
+
+    $uri->path("/users/$args{id}");
     $mech->get($uri->as_string);
+
+    unless ($mech->response->is_success) {
+        $uri->path("/account/show/$args{id}");
+        $mech->get($uri->as_string);
+
+        unless ($mech->response->is_success) {
+            die "Fail to guess user page on this redmine server.\n"
+        }
+    }
 
     return $self;
 }

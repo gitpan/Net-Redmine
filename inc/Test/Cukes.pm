@@ -2,12 +2,13 @@
 package Test::Cukes;
 use strict;
 use warnings;
-use Exporter::Lite;
-use Test::More;
 use Test::Cukes::Feature;
 use Carp::Assert;
+use Try::Tiny;
 
-our $VERSION = "0.06";
+use base 'Test::Builder::Module';
+
+our $VERSION = "0.10";
 our @EXPORT = qw(feature runtests Given When Then assert affirm should shouldnt);
 
 our @missing_steps = ();
@@ -30,37 +31,39 @@ sub runtests {
         $feature->{$caller} = Test::Cukes::Feature->new($feature_text);
     }
 
-    my $total_tests = 0;
     my @scenarios_of_caller = @{$feature->{$caller}->scenarios};
-
-    for my $scenario (@scenarios_of_caller) {
-        $total_tests += @{$scenario->steps};
-    }
-
-    Test::More::plan(tests => $total_tests);
 
     for my $scenario (@scenarios_of_caller) {
         my $skip = 0;
         my $skip_reason = "";
         my $gwt;
-        my %steps = %{$steps->{$caller} ||{}};
-    SKIP:
+
+
         for my $step_text (@{$scenario->steps}) {
             my ($pre, $step) = split " ", $step_text, 2;
-            Test::More::skip($step, 1) if $skip;
+            if ($skip) {
+                Test::Cukes->builder->skip($step_text);
+                next;
+            }
 
             $gwt = $pre if $pre =~ /(Given|When|Then)/;
 
             my $found_step = 0;
-            for my $step_pattern (keys %steps) {
-                my $cb = $steps{$step_pattern};
+            for my $step_pattern (keys %$steps) {
+                my $cb = $steps->{$step_pattern}->{code};
 
-                if ($step =~ m/$step_pattern/) {
-                    eval { $cb->(); };
-                    Test::More::ok(!$@, $step_text);
+                if (my (@matches) = $step =~ m/$step_pattern/) {
+                    my $ok = 1;
+                    try {
+                        $cb->(@matches);
+                    } catch {
+                        $ok = 0;
+                    };
 
-                    if ($@) {
-                        Test::More::diag($@);
+                    Test::Cukes->builder->ok($ok, $step_text);
+
+                    if ($skip == 0 && !$ok) {
+                        Test::Cukes->builder->diag($@);
                         $skip = 1;
                         $skip_reason = "Failed: $step_text";
                     }
@@ -77,6 +80,10 @@ sub runtests {
         }
     }
 
+    # If the user doesn't specify tests explicitly when they use Test::Cukes;,
+    # assume they had no plan and call done_testing for them.
+    Test::Cukes->builder->done_testing if !Test::Cukes->builder->has_plan;
+
     report_missing_steps();
 
     return 0;
@@ -84,18 +91,26 @@ sub runtests {
 
 sub report_missing_steps {
     return if @missing_steps == 0;
-    Test::More::note("There are missing step definitions, fill them in:");
+    Test::Cukes->builder->note("There are missing step definitions, fill them in:");
     for my $step_text (@missing_steps) {
         my ($word, $text) = ($step_text =~ /^(Given|When|Then) (.+)$/);
         my $msg = "\n$word qr/${text}/ => sub {\n    ...\n};\n";
-        Test::More::note($msg);
+        Test::Cukes->builder->note($msg);
     }
 }
 
 sub _add_step {
     my ($step, $cb) = @_;
-    my $caller = caller;
-    $steps->{$caller}{$step} = $cb;
+    my ($package, $filename, $line) = caller;
+
+    $steps->{$step} = {
+        definition => {
+            package => $package,
+            filename => $filename,
+            line => $line,
+        },
+        code => $cb
+    };
 }
 
 *Given = *_add_step;
@@ -105,4 +120,4 @@ sub _add_step {
 1;
 __END__
 
-#line 224
+#line 252

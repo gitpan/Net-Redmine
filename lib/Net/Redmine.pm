@@ -1,6 +1,6 @@
 package Net::Redmine;
 use Any::Moose;
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 use Net::Redmine::Connection;
 use Net::Redmine::Ticket;
 use Net::Redmine::Search;
@@ -27,6 +27,19 @@ sub BUILDARGS {
 
 sub create {
     my ($self, %args) = @_;
+    return $self->create_ticket(%$_) if $_ = $args{ticket};
+}
+
+sub copy {
+    my ( $self, %args ) = @_;
+    my $orig = $self->lookup_ticket(%$_) if $_ = $args{ticket};
+    delete $args{ticket}{id};
+    my @list = $orig->meta->get_attribute_list;
+    foreach my $attr (@list) {
+        next if ( $attr =~ /^(id|connection)$/ );
+        next if ( exists $args{ticket}{$attr} );
+        $args{ticket}{$attr} = $orig->$attr if defined $orig->$attr;
+    }
     return $self->create_ticket(%$_) if $_ = $args{ticket};
 }
 
@@ -92,8 +105,8 @@ Net::Redmine - A mechanized-based programming API against redmine server.
   # Create a new ticket
   my $t1 = $r->create(
       ticket => {
-          subject => "bug in the bag!"
-          description => "please eliminate the bug for me".
+          subject => "bug in the bag!",
+          description => "please eliminate the bug for me",
       }
   );
 
@@ -101,6 +114,15 @@ Net::Redmine - A mechanized-based programming API against redmine server.
   my $t2 = $r->lookup(
       ticket => {
           id => 42
+      }
+  );
+
+  # copy a ticket
+  my $t3 = $r->copy (
+      ticket => {
+          id => 42,  # id of the original ticket we want to copy
+          subject => "new subject",
+          description => "a description",
       }
   );
 
@@ -143,6 +165,12 @@ contain C<subject> and <description> of the ticket. For example:
 
 The returned value of this method is a C<Net::Redmine::Ticket> object.
 Also read the document of that class to see how to use it.
+
+=item copy( ticket => {id => Integer, ... } }
+
+The C<copy> instance method can copy an existing ticket. The id is the id
+of the original ticket we want to copy. The other values to the C<ticket>
+key is the same hasref as for C<create>.
 
 =item lookup( ticket => { id => Integer } }
 
